@@ -125,7 +125,7 @@ impl Arguments {
         ap.refer(&mut args.rules).metavar("STR[,STR..]").add_option(
             &["--rules"],
             StoreOption,
-            "use specified rules to fix coverages. Valid names are [close, test, loop, derive]",
+            "use specified rules to fix coverages. Valid names are [close, test, loop, derive, comment]",
         );
         #[cfg(feature = "parallel")]
         {
@@ -196,6 +196,6 @@ fn find_cargo_target_dir() -> Option<PathBuf> {
 
     let stdout = unsafe { String::from_utf8_unchecked(output.stdout) };
     let start = stdout.rfind("\"target_directory\":")? + 20;
-    let end = start + stdout[start..].find("\"")?;
+    let end = start + stdout[start..].find('"')?;
     Some(PathBuf::from(&stdout[start..end]))
 }

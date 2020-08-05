@@ -1,7 +1,7 @@
 use super::WorkSpace;
 use std::fs;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 #[test]
 fn all_rules() {

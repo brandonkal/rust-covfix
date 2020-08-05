@@ -16,7 +16,7 @@ macro_rules! assert_matches {
 pub struct WorkSpace {
     dir: TempDir,
 }
-
+#[allow(clippy::new_without_default)]
 impl WorkSpace {
     pub fn new() -> Self {
         Self {

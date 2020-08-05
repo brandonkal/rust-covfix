@@ -297,8 +297,8 @@ impl<'ast, 'a> Visit<'ast> for DeriveLoopInner<'a> {
     }
 }
 
+#[derive(Default)]
 pub struct UnreachableRule;
-
 impl UnreachableRule {
     pub fn new() -> Self {
         Self
@@ -375,6 +375,12 @@ impl Rule for CommentRule {
             }
         }
 
+        fn include_line(entry: &mut CoverageEntry) {
+            if let Some(&mut ref mut line_cov) = entry.line_cov {
+                line_cov.count = Some(1);
+            }
+        }
+
         fn ignore_branch(entry: &mut CoverageEntry) {
             entry.branch_covs.iter_mut().for_each(|v| v.taken = None);
         }
@@ -387,11 +393,20 @@ impl Rule for CommentRule {
         let mut inside_ignore_line = false;
         let mut inside_ignore_branch = false;
         let mut inside_ignore_both = false;
+        let mut inside_include_both = false;
 
         for mut entry in PerLineIterator::new(&source.content, file_cov) {
             use CommentMarker::*;
 
             let marker = extract_marker(entry.line);
+
+            if inside_include_both {
+                include_line(&mut entry);
+                if marker == Some(EndInclude) {
+                    inside_include_both = false;
+                }
+                continue;
+            }
 
             if inside_ignore_line {
                 ignore_line(&mut entry);
@@ -427,6 +442,7 @@ impl Rule for CommentRule {
                 Some(IgnoreLine) => ignore_line(&mut entry),
                 Some(IgnoreBranch) => ignore_branch(&mut entry),
                 Some(IgnoreBoth) => ignore_both(&mut entry),
+                Some(Include) => include_line(&mut entry),
                 Some(BeginIgnoreLine) => {
                     ignore_line(&mut entry);
                     inside_ignore_line = true;
@@ -439,6 +455,10 @@ impl Rule for CommentRule {
                     ignore_both(&mut entry);
                     inside_ignore_both = true;
                 }
+                Some(BeginInclude) => {
+                    include_line(&mut entry);
+                    inside_include_both = true;
+                }
                 _ => {}
             }
         }
@@ -450,7 +470,6 @@ pub fn default_rules() -> Vec<Box<dyn Rule>> {
         Box::new(CloseBlockRule::new()),
         Box::new(TestRule::new()),
         Box::new(LoopRule::new()),
-        Box::new(DeriveRule::new()),
         Box::new(UnreachableRule::new()),
         Box::new(CommentRule::new()),
     ]
@@ -575,6 +594,9 @@ enum CommentMarker {
     EndIgnoreLine,
     EndIgnoreBranch,
     EndIgnoreBoth,
+    Include,
+    BeginInclude,
+    EndInclude,
 }
 
 fn extract_marker(line: &str) -> Option<CommentMarker> {
@@ -637,6 +659,9 @@ fn parse_marker(key: &str) -> Option<CommentMarker> {
         ["end", "ignore", "line"] => Some(EndIgnoreLine),
         ["end", "ignore", "branch"] => Some(EndIgnoreBranch),
         ["end", "ignore", ""] => Some(EndIgnoreBoth),
+        ["include", "", ""] => Some(Include),
+        ["begin", "include", ""] => Some(BeginInclude),
+        ["end", "include", ""] => Some(EndInclude),
         _ => {
             warnln!("Warning: Invalid marker detected: {:?}", key);
             None

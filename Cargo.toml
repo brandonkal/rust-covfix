@@ -22,6 +22,12 @@ name = "rust_covfix"
 path = "src/lib.rs"
 doctest = false
 
+[profile.release]
+lto = true
+codegen-units = 1
+panic = 'abort'
+opt-level = "z"
+
 [features]
 default = ["cli", "lcov", "parallel"]
 cli = ["argparse"]
