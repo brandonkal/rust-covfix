@@ -1,3 +1,5 @@
+# Tasks
+
 ## dl-rust-source
 
 ```
@@ -6,7 +8,11 @@ rustup component add rust-src --toolchain nightly
 
 ## build//default
 
-```sh
+```bash
+name=${PWD##*/}
 cargo build --release
-strip target/release/rust-covfix
+strip target/release/$name
+cd target/release
+platform=`echo $(uname -s) | tr '[:upper:]' '[:lower:]'`
+tar -czf ${name}-${platform}.tar.gz $name
 ```

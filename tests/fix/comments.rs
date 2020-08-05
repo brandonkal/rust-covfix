@@ -18,7 +18,7 @@ fn main() {
     println!("a = {}", a);
     // cov:end-ignore
 
-    println!("finish."); // cov:ignore-branch
+    println!("finish."); //cov:ignore-branch (extra)
 
     return (); // cov:ignore
 }

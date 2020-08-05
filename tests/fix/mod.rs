@@ -1,6 +1,8 @@
 use super::WorkSpace;
 
-use rust_covfix::{BranchCoverage, CoverageFixer, FileCoverage, LineCoverage, PackageCoverage};
+use rust_covfix::{
+    rule, BranchCoverage, CoverageFixer, FileCoverage, LineCoverage, PackageCoverage,
+};
 
 macro_rules! line_coverages {
     () => {
@@ -211,7 +213,13 @@ fn derives() {
         original_branch_covs,
     )]);
 
-    let fixer = CoverageFixer::new();
+    let rule_str = "close,test,loop,derive,comment";
+    let mut rules = vec![];
+    for segment in rule_str.split(',').filter(|v| !v.is_empty()) {
+        rules.push(rule::from_str(segment).unwrap());
+    }
+    let fixer = CoverageFixer::with_rules(rules);
+
     fixer.fix(&mut coverage).unwrap();
 
     assert_eq!(

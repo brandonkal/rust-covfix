@@ -616,12 +616,12 @@ fn extract_marker(line: &str) -> Option<CommentMarker> {
                 continue;
             }
 
-            if i != 0 && !b" \t".contains(bytes.get_unchecked(i - 1)) {
+            if i != 0 && !b" \t/".contains(bytes.get_unchecked(i - 1)) {
                 continue;
             }
 
             let mut pos = i + 4;
-            while pos < bytes.len() && b" \t".contains(bytes.get_unchecked(pos)) {
+            while pos < bytes.len() && b"/ \t".contains(bytes.get_unchecked(pos)) {
                 pos += 1;
             }
 
